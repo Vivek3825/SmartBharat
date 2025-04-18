@@ -1,48 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/language_provider.dart';
 import 'home.dart';
 
 void main() {
-  runApp(SmartBharatApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
 }
 
-class SmartBharatApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Smart Bharat',
-      theme: ThemeData(
-        primarySwatch: Colors.teal,
-        fontFamily: 'Roboto',
-      ),
-      home: WelcomeScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.teal.shade100,
-      body: Center(
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            backgroundColor: Colors.teal,
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => HomePage()),
-            );
-          },
-          child: Text(
-            'Enter',
-            style: TextStyle(fontSize: 20, color: Colors.white),
-          ),
-        ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
+      ],
+      child: Consumer<LanguageProvider>(
+        builder: (context, languageProvider, child) {
+          return MaterialApp(
+            title: 'Smart Bharat',
+            theme: ThemeData(
+              primarySwatch: Colors.teal,
+              visualDensity: VisualDensity.adaptivePlatformDensity,
+            ),
+            home: const HomePage(),
+          );
+        },
       ),
     );
   }
