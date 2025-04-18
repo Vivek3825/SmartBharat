@@ -2,37 +2,53 @@
 
 # 🚜 SmartBharat: AI-Powered Rural Assistant
 
-SmartBharat is a voice-enabled mobile assistant designed for rural India. It provides real-time updates on healthcare, government schemes, and weather — all in local languages. Built with ❤️ using Flutter and Dialogflow CX.
+SmartBharat is a voice-based mobile app built for rural India. It provides updates on government schemes, healthcare, weather, and more — in local languages, with an easy-to-use interface.
 
 ---
 
-## 🔧 Project Setup
+## 🔧 Current Progress
 
-- ✅ Repository created on GitHub: `SmartBharat`
-- ✅ All team members added as collaborators
-- ✅ Branches created for individual development (`vivek`, `saurabh`, `shubham`, `sanket`)
-- ✅ Flutter environment successfully set up
-- ✅ Repo cloned locally for development
+- ✅ GitHub repo created: [SmartBharat](https://github.com/Vivek3825/smart_bharat.git)
+- ✅ Collaborators added
+- ✅ Branches created for each member (e.g., `vivek`)
+- ✅ Flutter setup complete
+- ✅ Home page UI designed with:
+  - Profile section
+  - Language selector (native language support)
+  - Voice interaction button ("Tap to Speak")
+  - Main service buttons:
+    - Health
+    - Schemes
+    - Weather
+    - DigiLocker
+  - Quick Action buttons:
+    - Nearby Hospitals
+    - Crop Prices
+    - News Update
+    - Help
+- ✅ Language selector implemented with dropdown menu
+- 🔧 Next step: Optimize performance and fix minor bugs/glitches
 
 ---
 
-## 🚀 Goals
+## 🌐 Key Features (In Progress)
 
-- Build a user-friendly mobile app
-- Voice interaction in regional languages
-- Real-time information on:
-  - Government schemes
-  - Healthcare alerts
-  - Weather updates
+- 🔈 Voice-enabled interactions
+- 🗣️ Regional language translations
+- 📲 Real-time government scheme updates
+- 🌦️ Localized weather alerts
+- 🏥 Nearby hospital finder
+- 🧾 DigiLocker integration (for rural documentation access)
+- 📰 Crop prices & news updates
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Flutter** – for cross-platform mobile UI
-- **Dialogflow CX** – for natural language understanding
-- **Google Translate API** – for regional language support
-- (More to be added as the project progresses...)
+- **Flutter** – Cross-platform app development
+- **Dialogflow CX** – Natural language processing
+- **Google Translate API** – For multilingual support
+- (More integrations coming soon...)
 
 ---
 
