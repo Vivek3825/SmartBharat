@@ -6,30 +6,30 @@ SmartBharat is a voice-based mobile app built for rural India. It provides updat
 
 ---
 
-## 🔧 Current Progress
+## 📌 Current Progress
 
-- ✅ GitHub repo created: [SmartBharat](https://github.com/Vivek3825/smart_bharat.git)
-- ✅ Collaborators added
-- ✅ Branches created for each member (e.g., `vivek`)
-- ✅ Flutter setup complete
-- ✅ Home page UI designed with:
-  - Profile section
-  - Language selector (native language support)
-  - Voice interaction button ("Tap to Speak")
-  - Main service buttons:
-    - Health
-    - Schemes
-    - Weather
-    - DigiLocker
-  - Quick Action buttons:
-    - Nearby Hospitals
-    - Crop Prices
-    - News Update
-    - Help
-- ✅ Language selector implemented with dropdown menu
-- 🔧 Next step: Optimize performance and fix minor bugs/glitches
+- ✅ Home page UI with key feature buttons
+- ✅ Multi-language support (Hindi, English, Marathi, Tamil, Telugu)
+- ✅ Language selector using `Provider` + `shared_preferences`
+- ✅ LocalizedText widget for dynamic UI updates
+- ✅ Responsive layout that adapts to different languages and screen sizes
+- ✅ Tamil-specific text adjustments and font scaling
+- ✅ Auto-rotating alert banners with icons and animations
+- ✅ Profile page with:
+  - Avatar and editable fields
+  - Government schemes tracking
+  - Security, feedback, and logout section
+- ✅ UI polish with borders, shadows, ellipsis protection, and maxLines
 
----
+
+## 📁 Key Flutter Files
+
+- `home.dart` – Main UI with feature buttons and quick actions
+- `profile.dart` – User profile with scheme tracking and settings
+- `language_provider.dart` – App-wide language state manager
+- `translation.dart` – Centralized string translations
+- `localized_text.dart` – Widget to show translated text dynamically
+
 
 ## 🌐 Key Features (In Progress)
 
@@ -41,16 +41,6 @@ SmartBharat is a voice-based mobile app built for rural India. It provides updat
 - 🧾 DigiLocker integration (for rural documentation access)
 - 📰 Crop prices & news updates
 
----
-
-## 🛠️ Tech Stack
-
-- **Flutter** – Cross-platform app development
-- **Dialogflow CX** – Natural language processing
-- **Google Translate API** – For multilingual support
-- (More integrations coming soon...)
-
----
 
 ## 👥 Team
 
@@ -59,14 +49,6 @@ SmartBharat is a voice-based mobile app built for rural India. It provides updat
 - Shubham (UI designer)
 - Sanket (Paper work)
 
----
-
-## 📌 Status
-
-🔹 Project just kicked off — basic structure ready.  
-🔹 Each member will work on their own branch.  
-
----
 
 ## 📂 How to Run
 
