@@ -4,41 +4,52 @@
 
 SmartBharat is a voice-based mobile app built for rural India. It provides updates on government schemes, healthcare, weather, and more — in local languages, with an easy-to-use interface.
 
----
+## 🔐 Firebase Integration
 
-## 📌 Current Progress
+We integrated Firebase to handle user authentication and profile management securely, using Firestore as the backend.
 
-- ✅ Login Flow Added
-  - Created `login.dart`, `register.dart`, `setpass.dart`
-  - Redirects to login/register on app launch instead of homepage
-  - Clean, minimal UI for login/register
-- ✅ Homepage only shown after successful login
-- ✅ Tamil language rendering issue fixed (pixel overflow)
-- ✅ Glitch & bug fixes for smoother user experience
-- ✅ Enhanced navigation smoothness and responsiveness
+### ✅ Services Used
+
+- **Firebase Authentication**
+  - Email/password-based login
+  - Password reset via email
+  - Persistent login sessions
+
+- **Cloud Firestore**
+  - Stores user profile data
+  - Enforced user-level data access via security rules
+
+### 🛠️ Files Added/Updated
+
+- `google-services.json` – Firebase config file
+- `firebase_auth_service.dart` – Abstracts auth operations
+- `UserProvider` – Handles login/register/logout and auth state
+- `login.dart`, `register.dart`, `setpass.dart` – Connected to Firebase
+- `profile.dart` – Fetches/updates user data from Firestore
+- `build.gradle` (Project & App-level) – Added Firebase dependencies
+
+### 🔁 Auth Flow
+
+- **Register:** Creates Firebase user and saves profile to Firestore  
+- **Login:** Validates credentials and loads user data  
+- **Reset Password:** Sends email with reset instructions  
+- **Auto Login:** Maintains session after restart  
+
+### 🔒 Security & State
+
+- Firebase rules ensure only the authenticated user accesses their data
+- Full error handling and state updates integrated with `UserProvider`
+- UI remains responsive during all operations
 
 
-## 📁 Key Flutter Files
+## 📦 Firebase Build Setup (Android)
 
-- `main.dart` – Entry point with routing logic
-- `login.dart`, `register.dart`, `setpass.dart` – Authentication pages
-- `home.dart` – Home screen with sections and quick actions
-- `profile.dart` – User profile and scheme tracking
-- `language_provider.dart` – State management for language selection
-- `translation.dart` – String translations
-- `localized_text.dart` – Dynamic text widget for localization
-
-
-
-## 🌐 Key Features (In Progress)
-
-- 🔈 Voice-enabled interactions
-- 🗣️ Regional language translations
-- 📲 Real-time government scheme updates
-- 🌦️ Localized weather alerts
-- 🏥 Nearby hospital finder
-- 🧾 DigiLocker integration (for rural documentation access)
-- 📰 Crop prices & news updates
+- **Min SDK Version:** 21
+- **Target SDK Version:** 35
+- **NDK Version:** 27.0.12077973
+- **Firebase SDKs:** Auth, Firestore
+- Added `google-services.json` to `/android/app/`
+- Applied Firebase plugin and dependencies in `build.gradle.kts`
 
 
 ## 👥 Team

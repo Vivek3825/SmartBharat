@@ -372,11 +372,19 @@ class AppTranslations {
       'पासवर्ड सफलतापूर्वक सेट किया गया', 'Password set successfully', 'पासवर्ड यशस्वीरित्या सेट केला', 'கடவுச்சொல் வெற்றிகரமாக அமைக்கப்பட்டது', 'పాస్‌వర్డ్ విజయవంతంగా సెట్ చేయబడింది'
     ]
   };
+
+  // Add common translations
+  static const Map<String, List<String>> commonTranslations = {
+    'language': [
+      'भाषा', 'Language', 'भाषा', 
+      'மொழி', 'భాష'
+    ],
+  };
   
   // Get translation by key and language index
   static String getText(String key, int languageIndex) {
     // Check in all translation maps
-    final maps = [homeTranslations, profileTranslations, loginTranslations, registrationTranslations, passwordTranslations];
+    final maps = [homeTranslations, profileTranslations, loginTranslations, registrationTranslations, passwordTranslations, commonTranslations];
     
     for (var map in maps) {
       if (map.containsKey(key)) {

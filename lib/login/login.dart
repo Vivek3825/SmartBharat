@@ -118,11 +118,11 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    // ignore: unused_local_variable
-    final userProvider = Provider.of<UserProvider>(context);
     
     return Scaffold(
       body: Container(
+        height: size.height,
+        width: size.width,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topRight,
@@ -131,192 +131,199 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(height: size.height * 0.05),
-                
-                // Language selection
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 16.0),
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showLanguageMenu(context),
-                      icon: const Icon(Icons.language),
-                      label: LocalizedText(
-                        translationKey: 'language',
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3E8E41),
-                        foregroundColor: Colors.white,
+            physics: ClampingScrollPhysics(),
+            child: Container(
+              constraints: BoxConstraints(
+                minHeight: size.height - MediaQuery.of(context).padding.top,
+              ),
+              child: Column(
+                children: [
+                  SizedBox(height: size.height * 0.05),
+                  
+                  // Language selection
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showLanguageMenu(context),
+                        icon: const Icon(Icons.language),
+                        label: LocalizedText(
+                          translationKey: 'language',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3E8E41),
+                          foregroundColor: Colors.white,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                
-                SizedBox(height: size.height * 0.05),
-                
-                // App logo/image
-                Image.asset(
-                  'assets/images/app_logo.png',
-                  height: 120,
-                  width: 120,
-                ),
-                
-                SizedBox(height: 20),
-                
-                // App title
-                LocalizedText(
-                  translationKey: 'appTitle',
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3E8E41),
+                  
+                  SizedBox(height: size.height * 0.05),
+                  
+                  // App logo/image
+                  Image.asset(
+                    'assets/images/app_logo.jpg',
+                    height: 120,
+                    width: 120,
                   ),
-                ),
-                
-                LocalizedText(
-                  translationKey: 'loginSubtitle',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
+                  
+                  SizedBox(height: 20),
+                  
+                  // App title
+                  LocalizedText(
+                    translationKey: 'appTitle',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF3E8E41),
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                
-                SizedBox(height: 40),
-                
-                // Login form
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        // Email field
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email, color: Color(0xFF3E8E41)),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: BorderSide(color: Color(0xFF3E8E41)),
-                            ),
-                          ),
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                              return 'Please enter a valid email';
-                            }
-                            return null;
-                          },
-                        ),
-                        
-                        SizedBox(height: 20),
-                        
-                        // Password field
-                        TextFormField(
-                          controller: _passwordController,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: Icon(Icons.lock, color: Color(0xFF3E8E41)),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                color: Color(0xFF3E8E41),
+                  
+                  LocalizedText(
+                    translationKey: 'loginSubtitle',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  
+                  SizedBox(height: 40),
+                  
+                  // Login form
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          // Email field
+                          TextFormField(
+                            controller: _emailController,
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              prefixIcon: Icon(Icons.email, color: Color(0xFF3E8E41)),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                                borderSide: BorderSide(color: Color(0xFF3E8E41)),
+                              ),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: BorderSide(color: Color(0xFF3E8E41)),
-                            ),
-                          ),
-                          obscureText: _obscurePassword,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
-                            }
-                            return null;
-                          },
-                        ),
-                        
-                        SizedBox(height: 10),
-                        
-                        // Forgot password
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/set_password');
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
                             },
-                            child: const Text(
-                              'Forgot Password?',
-                              style: TextStyle(color: Color(0xFF3E8E41)),
-                            ),
                           ),
-                        ),
-                        
-                        SizedBox(height: 20),
-                        
-                        // Login button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _login,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF3E8E41),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                          
+                          SizedBox(height: 20),
+                          
+                          // Password field
+                          TextFormField(
+                            controller: _passwordController,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              prefixIcon: Icon(Icons.lock, color: Color(0xFF3E8E41)),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                  color: Color(0xFF3E8E41),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                                borderSide: BorderSide(color: Color(0xFF3E8E41)),
                               ),
                             ),
-                            child: _isLoading 
-                              ? CircularProgressIndicator(color: Colors.white)
-                              : Text('Login', style: TextStyle(fontSize: 16)),
+                            obscureText: _obscurePassword,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              return null;
+                            },
                           ),
-                        ),
-                        
-                        SizedBox(height: 20),
-                        
-                        // Register option
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text("Don't have an account? "),
-                            TextButton(
+                          
+                          SizedBox(height: 10),
+                          
+                          // Forgot password
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
                               onPressed: () {
-                                Navigator.pushNamed(context, '/register');
+                                Navigator.pushNamed(context, '/set_password');
                               },
-                              child: Text(
-                                'Register',
+                              child: const Text(
+                                'Forgot Password?',
                                 style: TextStyle(color: Color(0xFF3E8E41)),
                               ),
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          
+                          SizedBox(height: 20),
+                          
+                          // Login button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _login,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF3E8E41),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: _isLoading 
+                                ? CircularProgressIndicator(color: Colors.white)
+                                : Text('Login', style: TextStyle(fontSize: 16)),
+                            ),
+                          ),
+                          
+                          SizedBox(height: 20),
+                          
+                          // Register option
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("Don't have an account? "),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/register');
+                                },
+                                child: Text(
+                                  'Register',
+                                  style: TextStyle(color: Color(0xFF3E8E41)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
