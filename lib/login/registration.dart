@@ -36,6 +36,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
     );
+    
     if (picked != null) {
       setState(() {
         _birthdateController.text = "${picked.day}/${picked.month}/${picked.year}";
