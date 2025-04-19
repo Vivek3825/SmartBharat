@@ -398,17 +398,19 @@ class _ProfilePageState extends State<ProfilePage> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: LocalizedText(
+              title: const LocalizedText(
                 translationKey: 'logoutConfirmTitle',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              content: LocalizedText(
-                translationKey: 'logoutConfirmMessage',
-                style: TextStyle(fontSize: 15),
-                textAlign: TextAlign.left,
+              content: SingleChildScrollView(
+                child: const LocalizedText(
+                  translationKey: 'logoutConfirmMessage',
+                  style: TextStyle(fontSize: 15),
+                  textAlign: TextAlign.left,
+                ),
               ),
               actions: [
                 TextButton(
@@ -422,14 +424,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 ElevatedButton(
                   onPressed: () {
+                    // Close the dialog
                     Navigator.pop(context);
-                    // Perform logout actions
-                    Navigator.of(context).pop(); // Go back to home page
+                    
+                    // Navigate to login page and remove all previous routes
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/login',
+                      (Route<dynamic> route) => false,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: errorColor,
                   ),
-                  child: LocalizedText(
+                  child: const LocalizedText(
                     translationKey: 'logout',
                     style: TextStyle(color: Colors.white),
                   ),
@@ -439,11 +446,11 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         },
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           child: Row(
             children: [
               Icon(Icons.logout, color: errorColor, size: 24),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: LocalizedText(
                   translationKey: 'logout',

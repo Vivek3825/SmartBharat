@@ -8,27 +8,26 @@ SmartBharat is a voice-based mobile app built for rural India. It provides updat
 
 ## 📌 Current Progress
 
-- ✅ Home page UI with key feature buttons
-- ✅ Multi-language support (Hindi, English, Marathi, Tamil, Telugu)
-- ✅ Language selector using `Provider` + `shared_preferences`
-- ✅ LocalizedText widget for dynamic UI updates
-- ✅ Responsive layout that adapts to different languages and screen sizes
-- ✅ Tamil-specific text adjustments and font scaling
-- ✅ Auto-rotating alert banners with icons and animations
-- ✅ Profile page with:
-  - Avatar and editable fields
-  - Government schemes tracking
-  - Security, feedback, and logout section
-- ✅ UI polish with borders, shadows, ellipsis protection, and maxLines
+- ✅ Login Flow Added
+  - Created `login.dart`, `register.dart`, `setpass.dart`
+  - Redirects to login/register on app launch instead of homepage
+  - Clean, minimal UI for login/register
+- ✅ Homepage only shown after successful login
+- ✅ Tamil language rendering issue fixed (pixel overflow)
+- ✅ Glitch & bug fixes for smoother user experience
+- ✅ Enhanced navigation smoothness and responsiveness
 
 
 ## 📁 Key Flutter Files
 
-- `home.dart` – Main UI with feature buttons and quick actions
-- `profile.dart` – User profile with scheme tracking and settings
-- `language_provider.dart` – App-wide language state manager
-- `translation.dart` – Centralized string translations
-- `localized_text.dart` – Widget to show translated text dynamically
+- `main.dart` – Entry point with routing logic
+- `login.dart`, `register.dart`, `setpass.dart` – Authentication pages
+- `home.dart` – Home screen with sections and quick actions
+- `profile.dart` – User profile and scheme tracking
+- `language_provider.dart` – State management for language selection
+- `translation.dart` – String translations
+- `localized_text.dart` – Dynamic text widget for localization
+
 
 
 ## 🌐 Key Features (In Progress)

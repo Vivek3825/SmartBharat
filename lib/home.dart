@@ -199,11 +199,11 @@ class _HomePageState extends State<HomePage> {
                   // Language selector
                   Builder(
                     builder: (context) => Container(
-                      width: screenWidth < 360 ? 65 : 70,
-                      height: 36,
+                      width: screenWidth < 360 ? 60 : 65, // Slightly reduced
+                      height: 32, // Reduced height
                       decoration: BoxDecoration(
                         color: Color(0xFF2D6E30),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.1),
@@ -215,32 +215,32 @@ class _HomePageState extends State<HomePage> {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(16),
                           onTap: () => _showLanguageMenu(context),
                           child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 4),
+                            padding: EdgeInsets.symmetric(horizontal: 2), // Reduced padding
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
+                                // Fixed width container for text to prevent overflow
                                 Container(
-                                  width: screenWidth < 360 ? 35 : 40,
+                                  width: screenWidth < 360 ? 30 : 35,
                                   alignment: Alignment.center,
                                   child: Text(
                                     languageProvider.currentLanguageDisplay,
                                     style: TextStyle(
-                                      fontSize: screenWidth < 360 ? 12 : 13,
+                                      fontSize: 11, // Smaller font
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
                                     textAlign: TextAlign.center,
-                                    overflow: TextOverflow.clip,
-                                    softWrap: false,
+                                    overflow: TextOverflow.ellipsis, // Add ellipsis
                                   ),
                                 ),
                                 Icon(
                                   Icons.arrow_drop_down,
                                   color: Colors.white,
-                                  size: screenWidth < 360 ? 12 : 14,
+                                  size: 12,
                                 )
                               ],
                             ),
@@ -453,11 +453,10 @@ class _HomePageState extends State<HomePage> {
     final languageProvider = Provider.of<LanguageProvider>(context);
     final bool isTamil = languageProvider.currentLanguageIndex == 3;
     
-    // Calculate fixed width based on screen size
-    final double tabWidth = (screenWidth / 4) - 16; // Fixed width for all tabs
+    // More flexible width calculation
+    final double tabWidth = screenWidth / 4;
     
-    return SizedBox(
-      width: tabWidth, // Fixed width container
+    return Expanded(
       child: InkWell(
         onTap: () {
           setState(() {
@@ -470,7 +469,7 @@ class _HomePageState extends State<HomePage> {
             borderRadius: BorderRadius.circular(16),
           ),
           padding: EdgeInsets.symmetric(
-            vertical: useCompactLayout || isTamil ? 6 : 8
+            vertical: useCompactLayout || isTamil ? 4 : 6
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -479,23 +478,22 @@ class _HomePageState extends State<HomePage> {
               Icon(
                 icon,
                 color: isSelected ? tabColor : textSecondary,
-                size: useCompactLayout || isTamil ? 22 : 24,
+                size: useCompactLayout || isTamil ? 20 : 22,
               ),
-              SizedBox(height: 4),
-              SizedBox(
-                height: 16, // Fixed height for text
-                width: tabWidth - 10, // Fixed width for text area
-                child: Center(
-                  child: LocalizedText(
-                    translationKey: translationKey,
-                    style: TextStyle(
-                      color: isSelected ? tabColor : textSecondary,
-                      fontSize: 9.5, // Very small font size for all languages
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+              SizedBox(height: 2), // Reduced for more text space
+              // More flexible text container
+              Container(
+                constraints: BoxConstraints(maxWidth: tabWidth - 10),
+                child: LocalizedText(
+                  translationKey: translationKey,
+                  style: TextStyle(
+                    color: isSelected ? tabColor : textSecondary,
+                    fontSize: isTamil ? 8 : 9, // Even smaller for Tamil
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
+                  maxLines: 1,
+                  adaptSize: true,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -513,38 +511,39 @@ class _HomePageState extends State<HomePage> {
     return Column(
       children: [
         Container(
-          height: useCompactLayout || isTamil ? 58 : 66,
-          width: useCompactLayout || isTamil ? 58 : 66,
+          height: useCompactLayout || isTamil ? 54 : 60,
+          width: useCompactLayout || isTamil ? 54 : 60,
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(18),
           ),
-          child: Icon(icon, color: color, size: useCompactLayout || isTamil ? 28 : 32),
+          child: Icon(icon, color: color, size: useCompactLayout || isTamil ? 26 : 30),
         ),
-        SizedBox(height: isTamil ? 6 : 8),
+        SizedBox(height: isTamil ? 4 : 6), // Reduced spacing
         Container(
-          width: isTamil ? 74 : 70, // Slightly wider for Tamil
-          height: isTamil ? 36 : 32, // More height for Tamil text
+          width: screenWidth / 4 - 8, // More dynamic width
+          constraints: BoxConstraints(maxHeight: 40), // Maximum height
           alignment: Alignment.center,
           child: LocalizedText(
             translationKey: translationKey,
             style: TextStyle(
-              fontSize: useCompactLayout || isTamil ? 10.5 : 12,
+              fontSize: isTamil ? 9 : 10, // Smaller font for Tamil
               color: textPrimary,
             ),
             maxLines: 2,
+            adaptSize: true, // Use our enhanced text adaptation
+            textAlign: TextAlign.center,
           ),
         ),
       ],
     );
   }
 
-  // Updated sliding alert banner method with overflow fix
   Widget _buildSlidingAlertBanner(bool isTamil, double screenWidth, LanguageProvider languageProvider) {
     return Container(
       width: double.infinity,
-      // Slight height reduction to fix overflow
-      height: isTamil ? 79 : 70, // Reduced by 1-2 pixels
+      // Make height adaptive based on language
+      height: isTamil ? 85 : 75, // Increased height for Tamil
       decoration: BoxDecoration(
         color: warningColor.withOpacity(0.1),
         border: Border(
@@ -586,18 +585,16 @@ class _HomePageState extends State<HomePage> {
                 }
                 
                 return Padding(
-                  // Reduced vertical padding
                   padding: EdgeInsets.symmetric(
-                    horizontal: isTamil ? 14 : 16, 
-                    vertical: 10 // Reduced from 12
+                    horizontal: 16, 
+                    vertical: 10
                   ),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start, // Changed to start alignment
                     children: [
-                      // Slightly smaller icon container
                       Container(
-                        padding: EdgeInsets.all(9), // Reduced from 10
-                        margin: EdgeInsets.only(right: 12),
+                        padding: EdgeInsets.all(8),
+                        margin: EdgeInsets.only(right: 12, top: 2), // Added top margin
                         decoration: BoxDecoration(
                           color: warningColor.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
@@ -612,38 +609,33 @@ class _HomePageState extends State<HomePage> {
                         child: Icon(
                           alertIcon,
                           color: warningColor, 
-                          size: 22, // Reduced from 24
+                          size: 20,
                         ),
                       ),
-                      // Text with more space
+                      // Expanded text container with better overflow handling
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            LocalizedText(
-                              translationKey: _alertKeys[index],
-                              style: TextStyle(
-                                fontSize: screenWidth < 360 ? 13 : (isTamil ? 12 : 14), // Slightly smaller font
-                                color: textPrimary,
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.1,
-                                height: 1.3,
-                              ),
-                              maxLines: isTamil ? 3 : 2,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.start,
-                            ),
-                          ],
+                        child: LocalizedText(
+                          translationKey: _alertKeys[index],
+                          style: TextStyle(
+                            fontSize: isTamil ? 12 : 13,
+                            color: textPrimary,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.1,
+                            height: 1.3,
+                          ),
+                          maxLines: 3, // Allow more lines for all languages
+                          adaptSize: true, // Use our enhanced LocalizedText with size adaptation
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.start,
                         ),
                       ),
-                      // Optional: Add a "View" button or chevron
+                      // Icon with flexibility
                       Container(
-                        margin: EdgeInsets.only(left: 6), // Reduced from 8
+                        margin: EdgeInsets.only(left: 4, top: 2),
                         child: Icon(
                           Icons.chevron_right,
                           color: warningColor,
-                          size: 18, // Reduced from 20
+                          size: 18,
                         ),
                       ),
                     ],
@@ -653,10 +645,10 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           
-          // Enhanced page indicator dots with animation - reduced height
+          // Page indicator with reduced height
           Container(
-            height: 8, // Reduced from 10
-            padding: EdgeInsets.only(bottom: 1), // Reduced from 2
+            height: 8,
+            padding: EdgeInsets.only(bottom: 2),
             alignment: Alignment.center,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -665,8 +657,8 @@ class _HomePageState extends State<HomePage> {
                 (i) => AnimatedContainer(
                   duration: Duration(milliseconds: 300),
                   margin: EdgeInsets.symmetric(horizontal: 2),
-                  width: i == _currentAlertIndex ? 16 : 5, // Slightly smaller
-                  height: 5, // Reduced from 6
+                  width: i == _currentAlertIndex ? 16 : 5,
+                  height: 4, // Reduced height
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(3),
                     color: i == _currentAlertIndex
