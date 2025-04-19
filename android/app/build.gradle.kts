@@ -5,6 +5,10 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'com.google.gms.google-services'  // Add this line
+
 android {
     namespace = "com.example.smart_bharat"
     compileSdk = flutter.compileSdkVersion

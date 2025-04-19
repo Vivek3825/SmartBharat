@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/language_provider.dart';
+import 'providers/user_provider.dart';
 import 'widgets/localized_text.dart';
 import 'profile.dart';
 
@@ -37,8 +38,24 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    // Check if user is logged in
+    _checkUserLoggedIn();
     // Start the alert rotation timer
     _startAlertRotation();
+  }
+  
+  Future<void> _checkUserLoggedIn() async {
+    // Add a slight delay to ensure providers are properly initialized
+    await Future.delayed(Duration.zero);
+    
+    if (!mounted) return;
+    
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    
+    if (!userProvider.isLoggedIn) {
+      // Navigate to login page if user is not logged in
+      Navigator.of(context).pushReplacementNamed('/login');
+    }
   }
   
   @override
