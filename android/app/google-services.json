@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "354697918244",
+    "project_id": "smartbharat-v",
+    "storage_bucket": "smartbharat-v.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:354697918244:android:9763a7ba18041bb1eb25b1",
+        "android_client_info": {
+          "package_name": "com.example.smart_bharat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-BAZ8xaAuhBgmtExT4jD2F0thlb86E2k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

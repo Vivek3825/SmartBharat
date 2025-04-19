@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+// ignore: unused_import
+import 'package:firebase_auth/firebase_auth.dart';
 import 'widgets/localized_text.dart';
-import 'providers/language_provider.dart';
+import 'providers/language_provider.dart'; // ignore: unused_import
+
+import 'providers/user_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -22,449 +27,558 @@ class _ProfilePageState extends State<ProfilePage> {
   final Color cardColor = Color(0xFFFFFFFF); // White
   final Color textPrimary = Color(0xFF212121); // Charcoal Black
   final Color textSecondary = Color(0xFF616161); // Muted Gray
+
+  bool _isLoading = true;
+  bool _isEditing = false;
+  Map<String, dynamic> _userData = {};
+  final _formKey = GlobalKey<FormState>();
+  
+  // Form controllers
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _birthdateController = TextEditingController();
+  String? _selectedGender;
+  String? _selectedState;
+
+  // List of states - simplified for rural users
+  final List<String> _states = [
+    'Andhra Pradesh', 'Bihar', 'Gujarat', 'Haryana',
+    'Karnataka', 'Madhya Pradesh', 'Maharashtra',
+    'Punjab', 'Rajasthan', 'Tamil Nadu', 'Uttar Pradesh'
+  ];
   
   @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final languageProvider = Provider.of<LanguageProvider>(context);
-    final bool isTamil = languageProvider.currentLanguageIndex == 3;
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+  
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _birthdateController.dispose();
+    super.dispose();
+  }
+  
+  Future<void> _loadUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
     
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        elevation: 0,
-        title: LocalizedText(
-          translationKey: 'profile',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Profile Header with Avatar
-            _buildProfileHeader(isTamil, screenWidth),
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      if (userProvider.user != null) {
+        final userId = userProvider.user!.uid;
+        
+        final docSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .get();
             
-            // Main Content Sections
-            Padding(
-              padding: EdgeInsets.all(isTamil ? 12 : 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Applied Schemes Section
-                  _buildSectionHeader('appliedSchemes', Icons.check_circle_outline),
-                  _buildSchemesSection(true, isTamil, screenWidth),
-                  
-                  SizedBox(height: isTamil ? 20 : 24),
-                  
-                  // Cancelled Schemes Section
-                  _buildSectionHeader('cancelledSchemes', Icons.cancel_outlined),
-                  _buildSchemesSection(false, isTamil, screenWidth),
-                  
-                  SizedBox(height: isTamil ? 20 : 24),
-                  
-                  // Security Section
-                  _buildSectionHeader('security', Icons.security),
-                  _buildSecuritySection(isTamil, screenWidth),
-                  
-                  SizedBox(height: isTamil ? 20 : 24),
-                  
-                  // Feedback Section
-                  _buildSectionHeader('feedback', Icons.feedback),
-                  _buildFeedbackSection(isTamil, screenWidth),
-                  
-                  SizedBox(height: isTamil ? 20 : 24),
-                  
-                  // Logout Option
-                  _buildLogoutButton(isTamil),
-                  
-                  SizedBox(height: 24),
-                ],
-              ),
-            ),
-          ],
+        if (docSnapshot.exists) {
+          setState(() {
+            _userData = docSnapshot.data()!;
+            _nameController.text = _userData['name'] ?? '';
+            _phoneController.text = _userData['phone'] ?? '';
+            _birthdateController.text = _userData['birthdate'] ?? '';
+            _selectedGender = _userData['gender'];
+            _selectedState = _userData['state'];
+          });
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error loading profile data: ${e.toString()}'),
+          backgroundColor: errorColor,
         ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  
+  Future<void> _updateUserData() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      if (userProvider.user != null) {
+        final userId = userProvider.user!.uid;
+        
+        await FirebaseFirestore.instance.collection('users').doc(userId).update({
+          'name': _nameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'birthdate': _birthdateController.text,
+          'gender': _selectedGender,
+          'state': _selectedState,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        
+        await _loadUserData();
+        
+        setState(() {
+          _isEditing = false;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profile updated successfully'),
+            backgroundColor: successColor,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating profile: ${e.toString()}'),
+          backgroundColor: errorColor,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _birthdateController.text.isNotEmpty 
+          ? _parseDate(_birthdateController.text) 
+          : DateTime.now().subtract(const Duration(days: 365 * 18)),
+      firstDate: DateTime(1950),
+      lastDate: DateTime.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: primaryColor,
+            buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+            colorScheme: ColorScheme.light(primary: primaryColor).copyWith(
+              secondary: primaryColor,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    
+    if (picked != null) {
+      setState(() {
+        _birthdateController.text = "${picked.day}/${picked.month}/${picked.year}";
+      });
+    }
+  }
+  
+  DateTime _parseDate(String dateStr) {
+    final parts = dateStr.split('/');
+    if (parts.length == 3) {
+      return DateTime(
+        int.parse(parts[2]), 
+        int.parse(parts[1]), 
+        int.parse(parts[0])
+      );
+    }
+    return DateTime.now().subtract(const Duration(days: 365 * 18));
+  }
+  
+  Future<void> _logout() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Logout'),
+        content: Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await Provider.of<UserProvider>(context, listen: false).logout();
+              Navigator.of(context).pushReplacementNamed('/login');
+            },
+            child: Text('LOGOUT'),
+          ),
+        ],
       ),
     );
   }
   
-  Widget _buildProfileHeader(bool isTamil, double screenWidth) {
-    return Container(
-      color: primaryColor,
-      padding: EdgeInsets.only(
-        left: 20, 
-        right: 20, 
-        bottom: 30,
-        top: 5,
-      ),
-      child: Column(
-        children: [
-          // Profile Image with Edit Button
-          Stack(
-            alignment: Alignment.bottomRight,
+  Widget _buildProfileDisplay() {
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: [
+        // Profile header with avatar
+        Center(
+          child: Column(
             children: [
-              Container(
-                width: screenWidth * 0.28,
-                height: screenWidth * 0.28,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 4,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(100),
-                  child: Image.asset(
-                    'assets/images/profile_placeholder.png',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Icon(
-                          Icons.person,
-                          size: screenWidth * 0.14,
-                          color: primaryColor,
-                        ),
-                      );
-                    },
-                  ),
+              CircleAvatar(
+                radius: 60,
+                backgroundColor: primaryColor,
+                child: Text(
+                  _userData['name']?.isNotEmpty == true
+                      ? _userData['name'][0].toUpperCase()
+                      : '?',
+                  style: const TextStyle(fontSize: 48, color: Colors.white),
                 ),
               ),
-              Container(
-                height: 36,
-                width: 36,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: secondaryColor,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  icon: Icon(Icons.edit, color: Colors.white, size: 18),
-                  onPressed: () {
-                    // Handle edit profile picture
-                  },
-                ),
-              ),
-            ],
-          ),
-          
-          SizedBox(height: 16),
-          
-          // User Name
-          LocalizedText(
-            translationKey: 'userName',
-            style: TextStyle(
-              fontSize: isTamil ? 20 : 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          
-          SizedBox(height: 4),
-          
-          // User Village
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.location_on, size: 16, color: Colors.white.withOpacity(0.9)),
-              SizedBox(width: 4),
-              LocalizedText(
-                translationKey: 'userVillage',
+              const SizedBox(height: 16),
+              Text(
+                _userData['name'] ?? 'User',
                 style: TextStyle(
-                  fontSize: isTamil ? 13 : 14,
-                  color: Colors.white.withOpacity(0.9),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String translationKey, IconData icon) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Icon(icon, color: primaryColor, size: 22),
-          SizedBox(width: 8),
-          LocalizedText(
-            translationKey: translationKey,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textPrimary,
-            ),
-            textAlign: TextAlign.left,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSchemesSection(bool isApplied, bool isTamil, double screenWidth) {
-    final List<Map<String, dynamic>> schemes = isApplied 
-      ? [
-          {'key': 'pmKisan', 'status': 'approved', 'date': '2023-12-10'},
-          {'key': 'janDhan', 'status': 'pending', 'date': '2024-01-15'},
-          {'key': 'ayushman', 'status': 'approved', 'date': '2023-08-22'},
-        ]
-      : [
-          {'key': 'skillIndia', 'status': 'rejected', 'date': '2023-07-05'},
-          {'key': 'mudraLoan', 'status': 'withdrawn', 'date': '2023-05-18'},
-        ];
-
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        children: schemes.map((scheme) {
-          Color statusColor;
-          IconData statusIcon;
-          
-          switch(scheme['status']) {
-            case 'approved':
-              statusColor = successColor;
-              statusIcon = Icons.check_circle;
-              break;
-            case 'pending':
-              statusColor = warningColor;
-              statusIcon = Icons.access_time;
-              break;
-            case 'rejected':
-              statusColor = errorColor;
-              statusIcon = Icons.cancel;
-              break;
-            case 'withdrawn':
-              statusColor = textSecondary;
-              statusIcon = Icons.remove_circle;
-              break;
-            default:
-              statusColor = textSecondary;
-              statusIcon = Icons.help;
-          }
-          
-          return Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: statusColor.withOpacity(0.1),
-                      ),
-                      child: Icon(statusIcon, color: statusColor, size: 20),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          LocalizedText(
-                            translationKey: scheme['key'],
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: textPrimary,
-                            ),
-                            textAlign: TextAlign.left,
-                          ),
-                          SizedBox(height: 2),
-                          Row(
-                            children: [
-                              LocalizedText(
-                                translationKey: scheme['status'],
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: statusColor,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.left,
-                              ),
-                              Text(
-                                ' • ${scheme['date']}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward_ios, size: 14, color: textSecondary),
-                  ],
-                ),
-              ),
-              if (schemes.last != scheme) Divider(height: 1),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildSecuritySection(bool isTamil, double screenWidth) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        children: [
-          _buildSettingItem('changePin', Icons.lock_outline, primaryColor),
-          Divider(height: 1),
-          _buildSettingItem('biometrics', Icons.fingerprint, primaryColor),
-          Divider(height: 1),
-          _buildSettingItem('deviceManagement', Icons.devices, primaryColor),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeedbackSection(bool isTamil, double screenWidth) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        children: [
-          _buildSettingItem('rateSuggestions', Icons.star_outline, accentColor),
-          Divider(height: 1),
-          _buildSettingItem('reportIssue', Icons.warning_amber_outlined, accentColor),
-          Divider(height: 1),
-          _buildSettingItem('voiceFeedback', Icons.mic_none, accentColor),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingItem(String translationKey, IconData icon, Color iconColor) {
-    return InkWell(
-      onTap: () {
-        // Handle setting tap
-      },
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        child: Row(
-          children: [
-            Icon(icon, color: iconColor, size: 22),
-            SizedBox(width: 16),
-            Expanded(
-              child: LocalizedText(
-                translationKey: translationKey,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                   color: textPrimary,
                 ),
-                textAlign: TextAlign.left,
               ),
-            ),
-            Icon(Icons.arrow_forward_ios, size: 14, color: textSecondary),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  // New Logout Button
-  Widget _buildLogoutButton(bool isTamil) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const LocalizedText(
-                translationKey: 'logoutConfirmTitle',
+              Text(
+                _userData['email'] ?? '',
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              content: SingleChildScrollView(
-                child: const LocalizedText(
-                  translationKey: 'logoutConfirmMessage',
-                  style: TextStyle(fontSize: 15),
-                  textAlign: TextAlign.left,
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: LocalizedText(
-                    translationKey: 'cancel',
-                    style: TextStyle(color: textSecondary),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // Close the dialog
-                    Navigator.pop(context);
-                    
-                    // Navigate to login page and remove all previous routes
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/login',
-                      (Route<dynamic> route) => false,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: errorColor,
-                  ),
-                  child: const LocalizedText(
-                    translationKey: 'logout',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          child: Row(
-            children: [
-              Icon(Icons.logout, color: errorColor, size: 24),
-              const SizedBox(width: 16),
-              Expanded(
-                child: LocalizedText(
-                  translationKey: 'logout',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: errorColor,
-                  ),
-                  textAlign: TextAlign.left,
+                  fontSize: 16,
+                  color: textSecondary,
                 ),
               ),
             ],
           ),
         ),
+        
+        const SizedBox(height: 32),
+        
+        // Profile details section
+        Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Personal Information',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: primaryColor,
+                  ),
+                ),
+                const Divider(),
+                _buildInfoRow('Phone', _userData['phone'] ?? 'Not provided'),
+                _buildInfoRow('Gender', _userData['gender'] ?? 'Not provided'),
+                _buildInfoRow('Birth Date', _userData['birthdate'] ?? 'Not provided'),
+                _buildInfoRow('State', _userData['state'] ?? 'Not provided'),
+              ],
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Action buttons
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _isEditing = true;
+                  });
+                },
+                icon: const Icon(Icons.edit),
+                label: const Text('Edit Profile'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _logout,
+                icon: const Icon(Icons.logout),
+                label: const Text('Logout'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildProfileEdit() {
+    return Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          Center(
+            child: CircleAvatar(
+              radius: 60,
+              backgroundColor: primaryColor,
+              child: Text(
+                _nameController.text.isNotEmpty 
+                    ? _nameController.text[0].toUpperCase() 
+                    : '?',
+                style: const TextStyle(fontSize: 48, color: Colors.white),
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Full Name
+          TextFormField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: 'Full Name',
+              prefixIcon: Icon(Icons.person, color: primaryColor),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter your name';
+              }
+              return null;
+            },
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Phone Number
+          TextFormField(
+            controller: _phoneController,
+            decoration: InputDecoration(
+              labelText: 'Phone Number',
+              prefixIcon: Icon(Icons.phone, color: primaryColor),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            keyboardType: TextInputType.phone,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter your phone number';
+              }
+              if (value.length != 10) {
+                return 'Phone number must be 10 digits';
+              }
+              return null;
+            },
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Email (read-only)
+          TextFormField(
+            initialValue: _userData['email'] ?? '',
+            decoration: InputDecoration(
+              labelText: 'Email',
+              prefixIcon: Icon(Icons.email, color: primaryColor),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            readOnly: true,
+            enabled: false,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Date of Birth
+          TextFormField(
+            controller: _birthdateController,
+            decoration: InputDecoration(
+              labelText: 'Date of Birth',
+              prefixIcon: Icon(Icons.calendar_today, color: primaryColor),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            readOnly: true,
+            onTap: () => _selectDate(context),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter your date of birth';
+              }
+              return null;
+            },
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Gender
+          DropdownButtonFormField<String>(
+            value: _selectedGender,
+            decoration: InputDecoration(
+              labelText: 'Gender',
+              prefixIcon: Icon(Icons.people, color: primaryColor),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            items: ['Male', 'Female', 'Other'].map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              setState(() {
+                _selectedGender = newValue!;
+              });
+            },
+            validator: (value) {
+              if (value == null) {
+                return 'Please select your gender';
+              }
+              return null;
+            },
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // State
+          DropdownButtonFormField<String>(
+            value: _selectedState,
+            decoration: InputDecoration(
+              labelText: 'State',
+              prefixIcon: Icon(Icons.location_on, color: primaryColor),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            items: _states.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              setState(() {
+                _selectedState = newValue!;
+              });
+            },
+            validator: (value) {
+              if (value == null) {
+                return 'Please select your state';
+              }
+              return null;
+            },
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Action buttons
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _updateUserData,
+                  icon: const Icon(Icons.save),
+                  label: const Text('Save Changes'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _isEditing = false;
+                    });
+                  },
+                  icon: const Icon(Icons.cancel),
+                  label: const Text('Cancel'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: textSecondary,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              style: TextStyle(
+                color: textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: LocalizedText(
+          translationKey: 'profile',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [backgroundColor, Colors.white],
+          ),
+        ),
+        child: _isLoading
+            ? Center(child: CircularProgressIndicator(color: primaryColor))
+            : _isEditing
+                ? _buildProfileEdit()
+                : _buildProfileDisplay(),
       ),
     );
   }

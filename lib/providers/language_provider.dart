@@ -41,7 +41,7 @@ class LanguageProvider extends ChangeNotifier {
   Future<void> loadSavedLanguage() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      int? savedIndex = prefs.getInt('language_index');
+      final savedIndex = prefs.getInt('language_index');
       
       if (savedIndex != null && savedIndex >= 0 && savedIndex < languages.length) {
         _currentLanguageIndex = savedIndex;

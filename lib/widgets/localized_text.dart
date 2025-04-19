@@ -27,8 +27,10 @@ class LocalizedText extends StatelessWidget {
     final text = AppTranslations.getText(translationKey, languageProvider.currentLanguageIndex);
     
     // Calculate appropriate text size
-    double? fontSize = style?.fontSize;
-    if (adaptSize && fontSize != null) {
+    TextStyle? adjustedStyle = style;
+    if (adaptSize && style != null) {
+      double fontSize = style!.fontSize ?? 14.0; // Default to 14 if fontSize is null
+      
       // Special handling for Tamil (index 3)
       if (languageProvider.currentLanguageIndex == 3) {
         fontSize = fontSize * 0.75; // More aggressive reduction for Tamil
@@ -37,14 +39,8 @@ class LocalizedText extends StatelessWidget {
       else if (text.length > 20) {
         fontSize = fontSize * 0.9;
       }
-    }
-    
-    // Create adjusted style with the possibly new font size
-    TextStyle? adjustedStyle;
-    if (fontSize != null && style != null) {
+      
       adjustedStyle = style!.copyWith(fontSize: fontSize);
-    } else {
-      adjustedStyle = style;
     }
     
     return Text(
