@@ -66,6 +66,23 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
     );
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
+      firstDate: DateTime(1950),
+      lastDate: DateTime.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: ColorScheme.light(primary: primaryColor),
+          ),
+          child: child!,
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _emailController.dispose();

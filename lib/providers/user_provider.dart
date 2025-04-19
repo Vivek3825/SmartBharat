@@ -4,6 +4,7 @@ import '../services/firebase_auth_service.dart';
 
 class UserProvider extends ChangeNotifier {
   final FirebaseAuthService _authService = FirebaseAuthService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
   bool _isLoading = true; // Start with loading true
   String? _error;
@@ -30,18 +31,28 @@ class UserProvider extends ChangeNotifier {
 
   // Login functionality
   Future<bool> login(String email, String password) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
-      _user = await _authService.signInWithEmailAndPassword(email, password);
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+      
+      UserCredential result = await _auth.signInWithEmailAndPassword(
+        email: email, 
+        password: password
+      );
+      
+      _user = result.user;
       _isLoading = false;
       notifyListeners();
       return true;
+    } on FirebaseAuthException catch (e) {
+      _isLoading = false;
+      _error = e.message;
+      notifyListeners();
+      return false;
     } catch (e) {
       _isLoading = false;
-      _error = _handleAuthError(e);
+      _error = e.toString();
       notifyListeners();
       return false;
     }
@@ -49,18 +60,28 @@ class UserProvider extends ChangeNotifier {
 
   // Registration functionality
   Future<bool> register(String email, String password) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
-      _user = await _authService.registerWithEmailAndPassword(email, password);
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+      
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email, 
+        password: password
+      );
+      
+      _user = result.user;
       _isLoading = false;
       notifyListeners();
       return true;
+    } on FirebaseAuthException catch (e) {
+      _isLoading = false;
+      _error = e.message;
+      notifyListeners();
+      return false;
     } catch (e) {
       _isLoading = false;
-      _error = _handleAuthError(e);
+      _error = e.toString();
       notifyListeners();
       return false;
     }

@@ -129,14 +129,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
       });
 
       try {
-        // Get the user provider
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         
-        // Register the user with Firebase Auth
         bool success = await userProvider.register(
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
+
+        // Even if the widget is unmounted, the provider state will be updated
+        
+        if (!mounted) return;
 
         if (success) {
           // Store additional user info in Firestore
@@ -150,37 +152,32 @@ class _RegistrationPageState extends State<RegistrationPage> {
             'createdAt': FieldValue.serverTimestamp(),
           });
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Registration successful!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-            
-            // Navigate to home page
-            Navigator.of(context).pushReplacementNamed('/home');
-          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Registration successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          
+          // Navigate to home page
+          Navigator.of(context).pushReplacementNamed('/home');
         } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(userProvider.error ?? 'Registration failed'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        }
-      } catch (e) {
-        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${e.toString()}'),
+              content: Text(userProvider.error ?? 'Registration failed'),
               backgroundColor: Colors.red,
             ),
           );
         }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       } finally {
+        // Always reset loading state, even if exceptions occur
         if (mounted) {
           setState(() {
             _isLoading = false;
@@ -192,6 +189,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    
     return Scaffold(
       appBar: AppBar(
         title: LocalizedText(
@@ -208,6 +207,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
         ],
       ),
       body: Container(
+        // Make container take full remaining height
+        height: size.height,
+        width: size.width,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topRight,
@@ -216,227 +218,238 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ),
         ),
         child: SafeArea(
+          // Set top to false since we have AppBar already handling safe area
+          top: false,
+          // Set bottom to false to extend below safe area
+          bottom: false,
           child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Full Name
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Full Name',
-                        prefixIcon: Icon(Icons.person, color: Color(0xFF3E8E41)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your name';
-                        }
-                        return null;
-                      },
-                    ),
-                    
-                    SizedBox(height: 16),
-                    
-                    // Phone Number
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: InputDecoration(
-                        labelText: 'Phone Number',
-                        prefixIcon: Icon(Icons.phone, color: Color(0xFF3E8E41)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your phone number';
-                        }
-                        if (value.length != 10) {
-                          return 'Phone number must be 10 digits';
-                        }
-                        return null;
-                      },
-                    ),
-                    
-                    SizedBox(height: 16),
-                    
-                    // Email
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.email, color: Color(0xFF3E8E41)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      },
-                    ),
-                    
-                    SizedBox(height: 16),
-                    
-                    // Password
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: Icon(Icons.lock, color: Color(0xFF3E8E41)),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                            color: Color(0xFF3E8E41),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      obscureText: _obscurePassword,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a password';
-                        }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    
-                    SizedBox(height: 16),
-                    
-                    // Date of Birth
-                    TextFormField(
-                      controller: _birthdateController,
-                      decoration: InputDecoration(
-                        labelText: 'Date of Birth',
-                        prefixIcon: Icon(Icons.calendar_today, color: Color(0xFF3E8E41)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      readOnly: true,
-                      onTap: () => _selectDate(context),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your date of birth';
-                        }
-                        return null;
-                      },
-                    ),
-                    
-                    SizedBox(height: 16),
-                    
-                    // Gender
-                    DropdownButtonFormField<String>(
-                      value: _selectedGender,
-                      decoration: InputDecoration(
-                        labelText: 'Gender',
-                        prefixIcon: Icon(Icons.people, color: Color(0xFF3E8E41)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      items: ['Male', 'Female', 'Other'].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          _selectedGender = newValue!;
-                        });
-                      },
-                    ),
-                    
-                    SizedBox(height: 16),
-                    
-                    // State
-                    DropdownButtonFormField<String>(
-                      value: _selectedState,
-                      decoration: InputDecoration(
-                        labelText: 'State',
-                        prefixIcon: Icon(Icons.location_on, color: Color(0xFF3E8E41)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      items: _states.map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          _selectedState = newValue!;
-                        });
-                      },
-                    ),
-                    
-                    SizedBox(height: 24),
-                    
-                    // Register Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _register,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF3E8E41),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+            physics: ClampingScrollPhysics(),
+            child: Container(
+              // Ensure content fills at least the whole screen
+              constraints: BoxConstraints(
+                minHeight: size.height - AppBar().preferredSize.height - MediaQuery.of(context).padding.top,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Full Name
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: 'Full Name',
+                          prefixIcon: Icon(Icons.person, color: Color(0xFF3E8E41)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
                           ),
                         ),
-                        child: _isLoading
-                            ? CircularProgressIndicator(color: Colors.white)
-                            : Text('Register', style: TextStyle(fontSize: 16)),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your name';
+                          }
+                          return null;
+                        },
                       ),
-                    ),
-                    
-                    SizedBox(height: 16),
-                    
-                    // Login option
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Already have an account? "),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            'Login',
-                            style: TextStyle(color: Color(0xFF3E8E41)),
+                      
+                      SizedBox(height: 16),
+                      
+                      // Phone Number
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: InputDecoration(
+                          labelText: 'Phone Number',
+                          prefixIcon: Icon(Icons.phone, color: Color(0xFF3E8E41)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
                           ),
                         ),
-                      ],
-                    ),
-                  ],
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your phone number';
+                          }
+                          if (value.length != 10) {
+                            return 'Phone number must be 10 digits';
+                          }
+                          return null;
+                        },
+                      ),
+                      
+                      SizedBox(height: 16),
+                      
+                      // Email
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          prefixIcon: Icon(Icons.email, color: Color(0xFF3E8E41)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email';
+                          }
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                            return 'Please enter a valid email';
+                          }
+                          return null;
+                        },
+                      ),
+                      
+                      SizedBox(height: 16),
+                      
+                      // Password
+                      TextFormField(
+                        controller: _passwordController,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: Icon(Icons.lock, color: Color(0xFF3E8E41)),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              color: Color(0xFF3E8E41),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                        ),
+                        obscureText: _obscurePassword,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a password';
+                          }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters';
+                          }
+                          return null;
+                        },
+                      ),
+                      
+                      SizedBox(height: 16),
+                      
+                      // Date of Birth
+                      TextFormField(
+                        controller: _birthdateController,
+                        decoration: InputDecoration(
+                          labelText: 'Date of Birth',
+                          prefixIcon: Icon(Icons.calendar_today, color: Color(0xFF3E8E41)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                        ),
+                        readOnly: true,
+                        onTap: () => _selectDate(context),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your date of birth';
+                          }
+                          return null;
+                        },
+                      ),
+                      
+                      SizedBox(height: 16),
+                      
+                      // Gender
+                      DropdownButtonFormField<String>(
+                        value: _selectedGender,
+                        decoration: InputDecoration(
+                          labelText: 'Gender',
+                          prefixIcon: Icon(Icons.people, color: Color(0xFF3E8E41)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                        ),
+                        items: ['Male', 'Female', 'Other'].map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          setState(() {
+                            _selectedGender = newValue!;
+                          });
+                        },
+                      ),
+                      
+                      SizedBox(height: 16),
+                      
+                      // State
+                      DropdownButtonFormField<String>(
+                        value: _selectedState,
+                        decoration: InputDecoration(
+                          labelText: 'State',
+                          prefixIcon: Icon(Icons.location_on, color: Color(0xFF3E8E41)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                        ),
+                        items: _states.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          setState(() {
+                            _selectedState = newValue!;
+                          });
+                        },
+                      ),
+                      
+                      SizedBox(height: 24),
+                      
+                      // Register Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _register,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF3E8E41),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: _isLoading
+                              ? CircularProgressIndicator(color: Colors.white)
+                              : Text('Register', style: TextStyle(fontSize: 16)),
+                        ),
+                      ),
+                      
+                      SizedBox(height: 16),
+                      
+                      // Login option
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("Already have an account? "),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              'Login',
+                              style: TextStyle(color: Color(0xFF3E8E41)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -3,6 +3,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // Constructor - Initialize with app verification disabled for testing
+  FirebaseAuthService() {
+    // IMPORTANT: Only use this for development!
+    FirebaseAuth.instance.setSettings(
+      appVerificationDisabledForTesting: true,
+    );
+  }
+
   // Current user
   User? get currentUser => _auth.currentUser;
   Stream<User?> get authStateChanges => _auth.authStateChanges();
