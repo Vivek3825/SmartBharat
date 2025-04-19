@@ -249,29 +249,145 @@ class AppTranslations {
       'ரத்து செய்', 'రద్దు'
     ],
   };
+
+  // Add login translations
+  static const Map<String, List<String>> loginTranslations = {
+    'login': [
+      'लॉग इन', 'Login', 'लॉगिन', 'உள்நுழைய', 'లాగిన్'
+    ],
+    'forgotPassword': [
+      'पासवर्ड भूल गए?', 'Forgot Password?', 'पासवर्ड विसरलात?', 'கடவுச்சொல் மறந்துவிட்டீர்களா?', 'పాస్‌వర్డ్ మర్చిపోయారా?'
+    ],
+    'dontHaveAccount': [
+      'खाता नहीं है?', 'Don\'t have an account?', 'खाते नाही?', 'கணக்கு இல்லையா?', 'ఖాతా లేదా?'
+    ],
+    'registerHere': [
+      'यहां पंजीकरण करें', 'Register Here', 'येथे नोंदणी करा', 'இங்கே பதிவு செய்யவும்', 'ఇక్కడ నమోదు చేయండి'
+    ],
+    'loginSlogan': [
+      'अपने खाते में प्रवेश करें', 'Access Your Account', 'आपल्या खात्यात प्रवेश करा', 'உங்கள் கணக்கை அணுகவும்', 'మీ ఖాతాను యాక్సెస్ చేయండి'
+    ],
+  };
+
+  // Add registration translations
+  static const Map<String, List<String>> registrationTranslations = {
+    'registerTitle': [
+      'पंजीकरण', 'Registration', 'नोंदणी', 'பதிவு', 'నమోదు'
+    ],
+    'registerSubtitle': [
+      'एक नया खाता बनाने के लिए नीचे दिए गए फॉर्म को भरें',
+      'Fill in the form below to create a new account',
+      'नवीन खाते तयार करण्यासाठी खालील फॉर्म भरा',
+      'புதிய கணக்கை உருவாக்க கீழே உள்ள படிவத்தை நிரப்பவும்',
+      'క్రింది ఫారమ్‌ని నింపి కొత్త ఖాతాను సృష్టించండి'
+    ],
+    'fullName': [
+      'पूरा नाम', 'Full Name', 'पूर्ण नाव', 'முழு பெயர்', 'పూర్తి పేరు'
+    ],
+    'firstName': [
+      'पहला नाम', 'First Name', 'पहिले नाव', 'முதல் பெயர்', 'మొదటి పేరు'
+    ],
+    'middleName': [
+      'मध्य नाम', 'Middle Name', 'मध्य नाव', 'நடு பெயர்', 'మధ్య పేరు'
+    ],
+    'lastName': [
+      'अंतिम नाम', 'Last Name', 'आडनाव', 'கடைசி பெயர்', 'చివరి పేరు'
+    ],
+    'phoneNumber': [
+      'फ़ोन नंबर', 'Phone Number', 'फोन नंबर', 'தொலைபேசி எண்', 'ఫోన్ నంబర్'
+    ],
+    'phoneHint': [
+      '10-अंकों का नंबर', '10-digit number', '10-अंक संख्या', '10 இலக்க எண்', '10-అంకెల సంఖ్య'
+    ],
+    'email': [
+      'ईमेल', 'Email', 'ईमेल', 'மின்னஞ்சல்', 'ఇమెయిల్'
+    ],
+    'birthdate': [
+      'जन्म तिथि', 'Birth Date', 'जन्मतारीख', 'பிறந்த தேதி', 'పుట్టిన తేది'
+    ],
+    'religion': [
+      'धर्म', 'Religion', 'धर्म', 'மதம்', 'మతం'
+    ],
+    'caste': [
+      'जाति', 'Caste', 'जात', 'சாதி', 'కులం'
+    ],
+    'state': [
+      'राज्य', 'State', 'राज्य', 'மாநிலம்', 'రాష్ట్రం'
+    ],
+    'selectState': [
+      'अपना राज्य चुनें', 'Select your state', 'आपले राज्य निवडा', 'உங்கள் மாநிலத்தைத் தேர்ந்தெடுக்கவும்', 'మీ రాష్ట్రాన్ని ఎంచుకోండి'
+    ],
+    'annualIncome': [
+      'वार्षिक आय', 'Annual Income', 'वार्षिक उत्पन्न', 'ஆண்டு வருமானம்', 'వార్షిక ఆదాయం'
+    ],
+    'next': [
+      'आगे', 'Next', 'पुढे', 'அடுத்து', 'తదుపరి'
+    ],
+    'gender': [
+      'लिंग', 'Gender', 'लिंग', 'பாலினம்', 'లింగం'
+    ],
+    'male': [
+      'पुरुष', 'Male', 'पुरुष', 'ஆண்', 'పురుషుడు'
+    ],
+    'female': [
+      'महिला', 'Female', 'स्त्री', 'பெண்', 'స్త్రీ'
+    ],
+    'other': [
+      'अन्य', 'Other', 'इतर', 'மற்றவை', 'ఇతర'
+    ],
+  };
+
+  // Add password translations
+  static const Map<String, List<String>> passwordTranslations = {
+    'setPasswordTitle': [
+      'पासवर्ड सेट करें', 'Set Password', 'पासवर्ड सेट करा', 'கடவுச்சொல்லை அமைக்கவும்', 'పాస్‌వర్డ్‌ని సెట్ చేయండి'
+    ],
+    'password': [
+      'पासवर्ड', 'Password', 'पासवर्ड', 'கடவுச்சொல்', 'పాస్‌వర్డ్'
+    ],
+    'confirmPassword': [
+      'पासवर्ड की पुष्टि करें', 'Confirm Password', 'पासवर्डची पुष्टी करा', 'கடவுச்சொல்லை உறுதிப்படுத்தவும்', 'పాస్‌వర్డ్‌ని నిర్ధారించండి'
+    ],
+    'passwordRequirements': [
+      'पासवर्ड कम से कम 6 अक्षर का होना चाहिए और इसमें कम से कम एक अंक होना चाहिए।', 
+      'Password must be at least 6 characters and contain at least one number.',
+      'पासवर्ड किमान 6 अक्षरांचा असावा आणि त्यात किमान एक अंक असावा.',
+      'கடவுச்சொல் குறைந்தது 6 எழுத்துகளாக இருக்க வேண்டும் மற்றும் குறைந்தபட்சம் ஒரு எண்ணை கொண்டிருக்க வேண்டும்.',
+      'పాస్‌వర్డ్ కనీసం 6 అక్షరాలు ఉండాలి మరియు కనీసం ఒక సంఖ్యను కలిగి ఉండాలి.'
+    ],
+    'passwordInstructions': [
+      'सुरक्षित पासवर्ड सेट करें', 'Create a secure password', 'सुरक्षित पासवर्ड सेट करा', 'பாதுகாப்பான கடவுச்சொல்லை உருவாக்கவும்', 'సురక్షితమైన పాస్‌వర్డ్‌ను సృష్టించండి'
+    ],
+    'passwordTip': [
+      'अपने पासवर्ड को याद रखें - इसे कागज पर लिखकर सुरक्षित रखें',
+      'Remember your password - write it down and keep it safe',
+      'आपला पासवर्ड लक्षात ठेवा - तो लिहून ठेवा आणि सुरक्षित ठेवा',
+      'உங்கள் கடவுச்சொல்லை நினைவில் கொள்ளுங்கள் - அதை எழுதி பாதுகாப்பாக வைத்திருங்கள்',
+      'మీ పాస్‌వర్డ్‌ను గుర్తుంచుకోండి - దానిని వ్రాసి సురక్షితంగా ఉంచండి'
+    ],
+    'submit': [
+      'जमा करें', 'Submit', 'सबमिट करा', 'சமர்ப்பிக்கவும்', 'సమర్పించండి'
+    ],
+    'passwordSetSuccessfully': [
+      'पासवर्ड सफलतापूर्वक सेट किया गया', 'Password set successfully', 'पासवर्ड यशस्वीरित्या सेट केला', 'கடவுச்சொல் வெற்றிகரமாக அமைக்கப்பட்டது', 'పాస్‌వర్డ్ విజయవంతంగా సెట్ చేయబడింది'
+    ]
+  };
   
   // Get translation by key and language index
   static String getText(String key, int languageIndex) {
-    // First check home translations
-    if (homeTranslations.containsKey(key)) {
-      List<String> translations = homeTranslations[key]!;
-      if (languageIndex >= 0 && languageIndex < translations.length) {
-        return translations[languageIndex];
-      } else {
-        return translations[1]; // Fallback to English
-      }
-    } 
-    // Then check profile translations
-    else if (profileTranslations.containsKey(key)) {
-      List<String> translations = profileTranslations[key]!;
-      if (languageIndex >= 0 && languageIndex < translations.length) {
-        return translations[languageIndex];
-      } else {
-        return translations[1]; // Fallback to English
+    // Check in all translation maps
+    final maps = [homeTranslations, profileTranslations, loginTranslations, registrationTranslations, passwordTranslations];
+    
+    for (var map in maps) {
+      if (map.containsKey(key)) {
+        final translations = map[key];
+        if (translations != null && languageIndex < translations.length) {
+          return translations[languageIndex];
+        }
       }
     }
     
-    // If no translation found, return the key itself
-    return key;
+    // Default fallback
+    return "[$key]";
   }
 }

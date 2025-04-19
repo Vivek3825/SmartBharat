@@ -6,53 +6,53 @@ import '../utils/translations.dart';
 class LocalizedText extends StatelessWidget {
   final String translationKey;
   final TextStyle? style;
-  final TextAlign textAlign;
+  final TextAlign? textAlign;
   final int? maxLines;
-  final TextOverflow overflow;
-  final bool softWrap;
-  
+  final bool adaptSize;
+  final TextOverflow? overflow;
+
   const LocalizedText({
-    super.key,
+    Key? key,
     required this.translationKey,
     this.style,
-    this.textAlign = TextAlign.center,
+    this.textAlign,
     this.maxLines,
-    this.overflow = TextOverflow.clip,
-    this.softWrap = true,
-  });
-  
+    this.adaptSize = false,
+    this.overflow,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final languageProvider = Provider.of<LanguageProvider>(context);
-    final String translatedText = AppTranslations.getText(
-      translationKey, 
-      languageProvider.currentLanguageIndex
-    );
+    final text = AppTranslations.getText(translationKey, languageProvider.currentLanguageIndex);
     
-    // Tamil-specific adjustments (index 3)
-    final bool isTamil = languageProvider.currentLanguageIndex == 3;
-    
-    // Adjust style for Tamil
-    TextStyle? adjustedStyle = style;
-    if (style != null && isTamil) {
-      final double fontSize = (style!.fontSize ?? 14) * 0.85; // 15% smaller for Tamil
-      adjustedStyle = style!.copyWith(
-        fontSize: fontSize,
-        letterSpacing: -0.3, // Tighter letter spacing
-        height: 1.1,        // Tighter line height
-      );
+    // Calculate appropriate text size
+    double? fontSize = style?.fontSize;
+    if (adaptSize && fontSize != null) {
+      // Special handling for Tamil (index 3)
+      if (languageProvider.currentLanguageIndex == 3) {
+        fontSize = fontSize * 0.75; // More aggressive reduction for Tamil
+      }
+      // Reduce size for other languages too when adaptSize is true
+      else if (text.length > 20) {
+        fontSize = fontSize * 0.9;
+      }
     }
     
-    // Determine max lines - allow one more line for Tamil if not explicitly set
-    final int effectiveMaxLines = maxLines ?? (isTamil ? 3 : 2);
+    // Create adjusted style with the possibly new font size
+    TextStyle? adjustedStyle;
+    if (fontSize != null && style != null) {
+      adjustedStyle = style!.copyWith(fontSize: fontSize);
+    } else {
+      adjustedStyle = style;
+    }
     
     return Text(
-      translatedText,
+      text,
       style: adjustedStyle,
       textAlign: textAlign,
-      maxLines: effectiveMaxLines,
-      overflow: overflow,
-      softWrap: softWrap,
+      maxLines: maxLines,
+      overflow: overflow ?? (maxLines != null ? TextOverflow.ellipsis : TextOverflow.clip),
     );
   }
 }
