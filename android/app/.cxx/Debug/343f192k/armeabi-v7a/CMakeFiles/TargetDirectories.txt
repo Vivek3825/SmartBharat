@@ -1,0 +1,2 @@
+/Users/home/Desktop/Hackton/smart_bharat/android/app/.cxx/Debug/343f192k/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/home/Desktop/Hackton/smart_bharat/android/app/.cxx/Debug/343f192k/armeabi-v7a/CMakeFiles/rebuild_cache.dir
