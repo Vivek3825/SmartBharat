@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.smart_bharat"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"  // This is correctly positioned now
+    ndkVersion = "29.0.13113456"  // Updated to match installed NDK version
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

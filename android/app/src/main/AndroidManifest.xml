@@ -42,4 +42,6 @@
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+    <!-- Microphone permission for speech-to-text and voice assistant -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 </manifest>

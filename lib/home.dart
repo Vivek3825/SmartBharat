@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'providers/language_provider.dart';
 import 'widgets/localized_text.dart';
 import 'profile.dart';
+import 'voice_assistant.dart';
+import 'page_router.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,7 +17,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  bool _isListening = false;
   
   // Alert banner variables
   int _currentAlertIndex = 0;
@@ -33,6 +35,12 @@ class _HomePageState extends State<HomePage> {
   final Color cardColor = Color(0xFFFFFFFF); // White
   final Color textPrimary = Color(0xFF212121); // Charcoal Black
   final Color textSecondary = Color(0xFF616161); // Muted Gray
+
+  stt.SpeechToText _speech = stt.SpeechToText();
+  bool _isListening = false;
+  String _recognizedText = '';
+  String _geminiResponse = '';
+  bool _isLoadingGemini = false;
 
   @override
   void initState() {
@@ -126,6 +134,67 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _listen() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (val) => setState(() {
+          if (val == 'done' || val == 'notListening') _isListening = false;
+        }),
+        onError: (val) => setState(() => _isListening = false),
+      );
+      if (available) {
+        setState(() => _isListening = true);
+        _speech.listen(
+          listenMode: stt.ListenMode.dictation,
+          onResult: (val) async {
+            setState(() {
+              _recognizedText = val.recognizedWords;
+            });
+            if (!_speech.isListening && _recognizedText.isNotEmpty) {
+              setState(() {
+                _isLoadingGemini = true;
+              });
+              final response = await GeminiApi.getGeminiResponse(_recognizedText);
+              setState(() {
+                _isLoadingGemini = false;
+              });
+              await _handleGeminiResponse(response);
+            }
+          },
+          cancelOnError: true,
+        );
+      } else {
+        setState(() => _isListening = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Speech recognition unavailable on this device or permission denied.')),
+        );
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
+  }
+
+  Future<void> _handleGeminiResponse(String geminiResponse) async {
+    final route = getPageRouteByTopic(context, geminiResponse);
+    if (route != null) {
+      Navigator.of(context).push(route);
+    } else {
+      // Get selected language from provider
+      final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+      final userLanguage = languageProvider.currentLanguageName;
+      setState(() {
+        _geminiResponse = '';
+        _isLoadingGemini = true;
+      });
+      final shortResponse = await GeminiApi.getGeminiResponse(_recognizedText, languageCode: userLanguage);
+      setState(() {
+        _geminiResponse = shortResponse;
+        _isLoadingGemini = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Get screen width for responsive design
@@ -146,6 +215,7 @@ class _HomePageState extends State<HomePage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Profile Icon - slightly reduced size with navigation
                   CircleAvatar(
@@ -260,6 +330,70 @@ class _HomePageState extends State<HomePage> {
           // Replace the existing alert banner with the new sliding version
           _buildSlidingAlertBanner(isTamil, screenWidth, languageProvider),
 
+          // Centered mic button with recognized text below
+          SizedBox(height: 32),
+          Center(
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: _listen,
+                  child: Container(
+                    height: 80,
+                    width: 80,
+                    decoration: BoxDecoration(
+                      color: _isListening ? accentColor.withOpacity(0.8) : Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        )
+                      ],
+                    ),
+                    child: Icon(
+                      _isListening ? Icons.mic : Icons.mic_none,
+                      size: 40,
+                      color: _isListening ? Colors.white : accentColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                // Show recognized speech text
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    _recognizedText.isNotEmpty
+                        ? _recognizedText
+                        : (_isListening ? 'Listening...' : 'Tap the mic and speak'),
+                    style: TextStyle(fontSize: 18, color: Colors.black87, fontWeight: FontWeight.w500),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                if (_isLoadingGemini)
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                if (_geminiResponse.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Text(
+                      _geminiResponse,
+                      style: const TextStyle(fontSize: 16, color: Colors.black87),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
           // Main content area with scroll view
           Expanded(
             child: SingleChildScrollView(
@@ -284,69 +418,6 @@ class _HomePageState extends State<HomePage> {
                       color: textSecondary,
                     ),
                     textAlign: TextAlign.start,
-                  ),
-                  
-                  SizedBox(height: 24),
-                  
-                  // Voice Assistant Section
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [primaryColor.withOpacity(0.9), primaryColor],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: [
-                        BoxShadow(
-                          color: primaryColor.withOpacity(0.3),
-                          blurRadius: 10,
-                          offset: Offset(0, 4),
-                        )
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        LocalizedText(
-                          translationKey: _isListening ? 'listening' : 'tapToSpeak',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: screenWidth < 360 ? 16 : 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _isListening = !_isListening;
-                            });
-                          },
-                          child: Container(
-                            height: screenWidth < 360 ? 80 : 90,
-                            width: screenWidth < 360 ? 80 : 90,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 8,
-                                  offset: Offset(0, 2),
-                                )
-                              ],
-                            ),
-                            child: Icon(
-                              _isListening ? Icons.mic : Icons.mic_none,
-                              size: screenWidth < 360 ? 40 : 45,
-                              color: _isListening ? accentColor : textSecondary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                   
                   SizedBox(height: 24),
@@ -674,5 +745,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-
